@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway-app
+  template:
+    metadata:
+      labels:
+        app: api-gateway-app
+    spec:
+      restartPolicy: Always
+      initContainers:
+        - name: wait-for-queue
+          image: busybox
+          command:
+            [
+              "sh",
+              "-c",
+              "until nc -z -w 3 billing-queue 5672; do echo waiting for billing-queue; sleep 5; done;",
+            ]
+      containers:
+        - name: api-gateway
+          image: orchestratorproject/api-gateway:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GATEWAY_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: orchestrator-secrets
+                  key: GATEWAY_HOST
+            - name: GATEWAY_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: orchestrator-secrets
+                  key: GATEWAY_PORT
+            - name: INVENTORY_URL
+              valueFrom:
+                secretKeyRef:
+                  name: orchestrator-secrets
+                  key: INVENTORY_URL
+            - name: RABBITMQ_API_URL
+              valueFrom:
+                secretKeyRef:
+                  name: orchestrator-secrets
+                  key: RABBITMQ_API_URL
+            - name: RABBITMQ_QUEUE
+              valueFrom:
+                secretKeyRef:
+                  name: orchestrator-secrets
+                  key: RABBITMQ_QUEUE
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-app
+spec:
+  type: LoadBalancer
+  selector:
+    app: api-gateway-app
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-gateway-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-gateway-app
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60

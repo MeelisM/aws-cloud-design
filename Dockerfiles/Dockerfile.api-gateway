@@ -1,0 +1,15 @@
+FROM node:18-alpine3.21
+
+WORKDIR /app
+
+COPY src/api-gateway/package*.json ./
+
+RUN npm install
+
+COPY src/api-gateway/ .
+
+EXPOSE 3000
+
+RUN mkdir -p /var/log/api-gateway
+
+CMD ["node", "server.js"]

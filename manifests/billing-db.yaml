@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: billing-db
+spec:
+  serviceName: billing-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: billing-db
+  template:
+    metadata:
+      labels:
+        app: billing-db
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: postgres
+          image: orchestratorproject/billing-db:latest
+          ports:
+            - containerPort: 5432
+          env:
+            # PostgreSQL admin credentials
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: orchestrator-secrets
+                  key: BILLING_POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              value: "postgres"
+            # Original variables for app compatibility
+            - name: BILLING_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: orchestrator-secrets
+                  key: BILLING_DB_USER
+            - name: BILLING_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: orchestrator-secrets
+                  key: BILLING_DB_NAME
+            - name: BILLING_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: orchestrator-secrets
+                  key: BILLING_DB_PASSWORD
+          volumeMounts:
+            - name: billing-db-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "1"
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
+  volumeClaimTemplates:
+    - metadata:
+        name: billing-db-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: billing-db
+spec:
+  clusterIP: None
+  selector:
+    app: billing-db
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432

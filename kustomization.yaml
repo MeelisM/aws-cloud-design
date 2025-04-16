@@ -1,0 +1,17 @@
+secretGenerator:
+  - name: orchestrator-secrets
+    envs:
+      - ./.env
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    type: generated
+  annotations:
+    note: generated
+resources:
+  - manifests/inventory-db.yaml
+  - manifests/inventory-app.yaml
+  - manifests/api-gateway-app.yaml
+  - manifests/billing-db.yaml
+  - manifests/billing-app.yaml
+  - manifests/billing-queue.yaml

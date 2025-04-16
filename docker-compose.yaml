@@ -1,0 +1,126 @@
+services:
+  inventory-db:
+    build:
+      context: .
+      dockerfile: Dockerfile.inventory-db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${INVENTORY_DB_USER}
+      POSTGRES_PASSWORD: ${INVENTORY_DB_PASSWORD}
+      POSTGRES_DB: ${INVENTORY_DB_NAME}
+    container_name: inventory-db
+    volumes:
+      - inventory-db-volume:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: always
+
+  inventory-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.inventory-app
+    env_file:
+      - .env
+    environment:
+      INVENTORY_DB_HOST: ${INVENTORY_DB_HOST}
+      INVENTORY_DB_PORT: ${INVENTORY_DB_PORT}
+      INVENTORY_DB_NAME: ${INVENTORY_DB_NAME}
+      INVENTORY_DB_USER: ${INVENTORY_DB_USER}
+      INVENTORY_DB_PASSWORD: ${INVENTORY_DB_PASSWORD}
+      INVENTORY_PORT: ${INVENTORY_PORT}
+      INVENTORY_HOST: ${INVENTORY_HOST}
+    container_name: inventory-app
+    depends_on:
+      inventory-db:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: always
+    command: sh -c "npx sequelize-cli db:migrate && node server.js"
+
+  billing-db:
+    build:
+      context: .
+      dockerfile: Dockerfile.billing-db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${BILLING_DB_USER}
+      POSTGRES_PASSWORD: ${BILLING_DB_PASSWORD}
+      POSTGRES_DB: ${BILLING_DB_NAME}
+    container_name: billing-db
+    volumes:
+      - billing-db-volume:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: always
+
+  billing-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.billing-app
+    env_file:
+      -  .env
+    environment:
+      BILLING_DB_HOST: ${BILLING_DB_HOST}
+      BILLING_DB_PORT: ${BILLING_DB_PORT}
+      BILLING_DB_NAME: ${BILLING_DB_NAME}
+      BILLING_DB_USER: ${BILLING_DB_USER}
+      BILLING_DB_PASSWORD: ${BILLING_DB_PASSWORD}
+      BILLING_PORT: ${BILLING_PORT}
+      BILLING_HOST: ${BILLING_HOST}
+      RABBITMQ_LOCAL_URL: ${RABBITMQ_LOCAL_URL}
+      RABBITMQ_QUEUE: ${RABBITMQ_QUEUE}
+    container_name: billing-app
+    depends_on:
+      billing-db:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: always
+    command: sh -c "npx sequelize-cli db:migrate && node server.js"
+
+  billing-queue:
+    build:
+      context: .
+      dockerfile: Dockerfile.billing-queue
+    env_file:
+      - .env
+    container_name: billing-queue
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    networks:
+      - app-network
+    restart: always
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.api-gateway
+    env_file:
+      - .env
+    environment:
+      GATEWAY_PORT: ${GATEWAY_PORT}
+      GATEWAY_HOST: ${GATEWAY_HOST}
+      INVENTORY_URL: ${INVENTORY_URL}
+      RABBITMQ_API_URL: ${RABBITMQ_API_URL}
+      RABBITMQ_QUEUE: ${RABBITMQ_QUEUE}
+    container_name: api-gateway
+    volumes:
+      - api-gateway-logs:/var/logs/api-gateway
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    networks:
+      - app-network
+    restart: always
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  inventory-db-volume:
+  billing-db-volume:
+  api-gateway-logs:
