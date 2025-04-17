@@ -7,7 +7,7 @@
 - [Setup and Installation](#setup-and-installation)
 - [Infrastructure Management](#infrastructure-management)
 - [API Documentation](#api-documentation)
-- [Postmann](#postman)
+- [Postman](#postman)
 
 ## Architecture Overview
 
