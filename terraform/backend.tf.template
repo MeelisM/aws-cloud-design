@@ -1,0 +1,9 @@
+terraform {
+  backend "s3" {
+    bucket         = "YOUR_BUCKET_NAME"                     # Bucket name
+    key            = "MODULE_NAME/terraform.tfstate"        # Terraform state file location
+    region         = "YOUR_REGION"                          # Bootstrap region
+    dynamodb_table = "cloud-project-tf-state-lock"          # DynamoDB table name
+    encrypt        = true
+  }
+}
