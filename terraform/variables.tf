@@ -28,12 +28,6 @@ variable "private_subnet_cidrs" {
   default     = ["10.0.11.0/24", "10.0.12.0/24"]
 }
 
-variable "database_subnet_cidrs" {
-  description = "CIDR blocks for database subnets"
-  type        = list(string)
-  default     = ["10.0.21.0/24", "10.0.22.0/24"]
-}
-
 variable "availability_zones" {
   description = "Availability zones to use in eu-north-1"
   type        = list(string)
@@ -41,7 +35,43 @@ variable "availability_zones" {
 }
 
 variable "cluster_name" {
-  description = "Name of the EKS cluster for tagging"
+  description = "Name of the EKS cluster"
   type        = string
   default     = "cloud-design-cluster"
+}
+
+variable "cluster_version" {
+  description = "Kubernetes version to use for the EKS cluster"
+  type        = string
+  default     = "1.32"
+}
+
+variable "node_instance_types" {
+  description = "List of instance types for EKS nodes"
+  type        = list(string)
+  default     = ["t3.micro"]
+}
+
+variable "capacity_type" {
+  description = "Type of capacity associated with the EKS Node Group"
+  type        = string
+  default     = "SPOT"
+}
+
+variable "desired_capacity" {
+  description = "Desired number of worker nodes"
+  type        = number
+  default     = 1
+}
+
+variable "min_capacity" {
+  description = "Minimum number of worker nodes"
+  type        = number
+  default     = 1
+}
+
+variable "max_capacity" {
+  description = "Maximum number of worker nodes"
+  type        = number
+  default     = 3
 }
