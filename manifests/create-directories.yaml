@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: create-data-dirs
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      name: create-data-dirs
+  template:
+    metadata:
+      labels:
+        name: create-data-dirs
+    spec:
+      containers:
+        - name: create-dirs
+          image: busybox
+          command:
+            [
+              "sh",
+              "-c",
+              "mkdir -p /mnt/data/billing /mnt/data/inventory /mnt/data/rabbitmq && chmod -R 777 /mnt/data && sleep 3600",
+            ]
+          volumeMounts:
+            - name: host-path
+              mountPath: /mnt/data
+          securityContext:
+            privileged: true
+      volumes:
+        - name: host-path
+          hostPath:
+            path: /mnt/data
+            type: DirectoryOrCreate
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists

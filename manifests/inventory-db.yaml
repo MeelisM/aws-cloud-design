@@ -77,7 +77,8 @@ spec:
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            storage: 1Gi
+            storage: 100Mi
+        storageClassName: local-storage
 ---
 apiVersion: v1
 kind: Service
@@ -91,3 +92,27 @@ spec:
     - protocol: TCP
       port: 5432
       targetPort: 5432
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: inventory-db-vol
+spec:
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /mnt/data/inventory
+  claimRef:
+    namespace: default
+    name: inventory-db-data-inventory-db-0
