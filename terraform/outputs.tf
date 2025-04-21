@@ -54,3 +54,19 @@ output "cluster_autoscaler_policy_arn" {
   description = "Cluster Autoscaler IAM Policy ARN"
   value       = module.eks.cluster_autoscaler_policy_arn
 }
+
+# ACM Certificate Outputs
+output "certificate_arn" {
+  description = "The ARN of the SSL/TLS certificate"
+  value       = module.acm.certificate_arn
+}
+
+output "certificate_status" {
+  description = "Status of the certificate"
+  value       = module.acm.certificate_status
+}
+
+output "certificate_common_name" {
+  description = "Common name used for the self-signed certificate"
+  value       = var.certificate_common_name
+}

@@ -2,6 +2,8 @@ resource "aws_s3_bucket" "terraform_state" {
   bucket        = var.state_bucket_name
   force_destroy = true
 
+  depends_on = [null_resource.wait_for_iam]
+
   tags = {
     Name        = "Terraform State Bucket"
     Environment = var.environment

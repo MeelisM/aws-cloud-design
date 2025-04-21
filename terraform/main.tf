@@ -1,3 +1,13 @@
+# IAM module for centralized policy management
+# This must be created first during apply and destroyed last during destroy
+module "iam" {
+  source = "./iam"
+
+  aws_region         = var.aws_region
+  environment        = var.environment
+  cli_admin_username = var.cli_admin_username
+}
+
 module "vpc" {
   source = "./vpc"
 
@@ -8,6 +18,9 @@ module "vpc" {
   private_subnet_cidrs = var.private_subnet_cidrs
   availability_zones   = var.availability_zones
   cluster_name         = var.cluster_name
+
+  # Make VPC module depend on IAM policies
+  depends_on = [module.iam]
 }
 
 module "eks" {
@@ -26,6 +39,21 @@ module "eks" {
   desired_capacity    = var.desired_capacity
   min_capacity        = var.min_capacity
   max_capacity        = var.max_capacity
+
+  # Make EKS module depend on IAM policies
+  depends_on = [module.iam, module.vpc]
+}
+
+# AWS Certificate Manager for HTTPS (self-signed certificate for demo)
+module "acm" {
+  source = "./acm"
+
+  aws_region              = var.aws_region
+  environment             = var.environment
+  certificate_common_name = var.certificate_common_name
+
+  # Make ACM module depend on IAM policies
+  depends_on = [module.iam]
 }
 
 module "kubernetes_addons" {
@@ -41,7 +69,5 @@ module "kubernetes_addons" {
   metrics_server_chart_version    = "3.11.0"
   create_custom_lb_policy         = true
 
-  depends_on = [
-    module.eks
-  ]
+  depends_on = [module.iam, module.eks]
 }

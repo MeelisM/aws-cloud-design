@@ -75,3 +75,22 @@ variable "max_capacity" {
   type        = number
   default     = 3
 }
+
+# Certificate Manager variables - simplified for self-signed certificate
+variable "certificate_common_name" {
+  description = "Common name for the self-signed certificate (can be any value for demo)"
+  type        = string
+  default     = "cloudproject.example.com"
+}
+
+variable "cli_admin_username" {
+  description = "Username of the CLI admin user that needs AWS permissions"
+  type        = string
+  default     = "cli-admin"
+}
+
+variable "create_user_roles" {
+  description = "Whether to create additional IAM users and roles for EKS access"
+  type        = bool
+  default     = false
+}

@@ -13,13 +13,13 @@ variable "environment" {
 variable "cluster_name" {
   description = "Name of the EKS cluster"
   type        = string
-  default     = "koodjohvi-cluster"
+  default     = "cloud-cluster"
 }
 
 variable "kubernetes_version" {
   description = "Kubernetes version for EKS cluster"
   type        = string
-  default     = "1.28"
+  default     = "1.32"
 }
 
 variable "vpc_id" {
@@ -67,3 +67,4 @@ variable "max_capacity" {
   type        = number
   default     = 3
 }
+
