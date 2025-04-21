@@ -19,8 +19,8 @@ module "vpc" {
   availability_zones   = var.availability_zones
   cluster_name         = var.cluster_name
 
-  # Make VPC module depend on IAM policies
-  depends_on = [module.iam]
+  # Make VPC module depend on IAM policies with propagation delay
+  depends_on = [module.iam.iam_policy_readiness]
 }
 
 module "eks" {
@@ -40,8 +40,8 @@ module "eks" {
   min_capacity        = var.min_capacity
   max_capacity        = var.max_capacity
 
-  # Make EKS module depend on IAM policies
-  depends_on = [module.iam, module.vpc]
+  # Make EKS module depend on IAM policies with propagation delay
+  depends_on = [module.iam.iam_policy_readiness, module.vpc]
 }
 
 # AWS Certificate Manager for HTTPS (self-signed certificate for demo)
@@ -52,8 +52,8 @@ module "acm" {
   environment             = var.environment
   certificate_common_name = var.certificate_common_name
 
-  # Make ACM module depend on IAM policies
-  depends_on = [module.iam]
+  # Make ACM module depend on IAM policies with propagation delay
+  depends_on = [module.iam.iam_policy_readiness]
 }
 
 module "kubernetes_addons" {
@@ -69,5 +69,5 @@ module "kubernetes_addons" {
   metrics_server_chart_version    = "3.11.0"
   create_custom_lb_policy         = true
 
-  depends_on = [module.iam, module.eks]
+  depends_on = [module.iam.iam_policy_readiness, module.eks]
 }

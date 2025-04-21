@@ -121,7 +121,8 @@ resource "aws_iam_policy" "eks_permissions" {
           "iam:GetOpenIDConnectProvider",
           "iam:DeleteOpenIDConnectProvider",
           "iam:TagOpenIDConnectProvider",
-          "iam:ListOpenIDConnectProviders"
+          "iam:ListOpenIDConnectProviders",
+          "iam:ListInstanceProfilesForRole"
         ],
         Resource = "*"
       },
@@ -217,4 +218,35 @@ resource "aws_iam_user_policy_attachment" "cli_admin_acm" {
 resource "aws_iam_user_policy_attachment" "cli_admin_tag" {
   user       = data.aws_iam_user.cli_admin.user_name
   policy_arn = aws_iam_policy.tag_permissions.arn
+}
+
+# ----------------
+# Wait for IAM Policy Propagation
+# ----------------
+
+# Create a null resource that waits for IAM policies to propagate
+resource "null_resource" "wait_for_iam_propagation" {
+  depends_on = [
+    aws_iam_user_policy_attachment.cli_admin_vpc,
+    aws_iam_user_policy_attachment.cli_admin_eks,
+    aws_iam_user_policy_attachment.cli_admin_acm,
+    aws_iam_user_policy_attachment.cli_admin_tag
+  ]
+
+  provisioner "local-exec" {
+    command = "echo 'IAM policies have been created. Waiting for 30 seconds for policy propagation...' && sleep 30"
+  }
+}
+
+# Create another null resource to ensure IAM policies are destroyed last
+resource "null_resource" "iam_destroyer" {
+  provisioner "local-exec" {
+    command = "echo 'All resources destroyed. Now will destroy IAM policies.'"
+    when    = destroy
+  }
+
+  # This ensures the IAM policies are destroyed after all other resources
+  depends_on = [
+    null_resource.wait_for_iam_propagation
+  ]
 }

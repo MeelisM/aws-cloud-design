@@ -60,50 +60,35 @@ resource "helm_release" "metrics_server" {
   force_update     = true
   replace          = true
 
-  set {
-    name  = "args[0]"
-    value = "--cert-dir=/tmp"
-  }
-
-  set {
-    name  = "args[1]"
-    value = "--secure-port=10443"
-  }
-
-  set {
-    name  = "args[2]"
-    value = "--kubelet-preferred-address-types=InternalIP"
-  }
-
-  set {
-    name  = "args[3]"
-    value = "--kubelet-use-node-status-port"
-  }
-
-  set {
-    name  = "args[4]"
-    value = "--metric-resolution=15s"
-  }
-
-  set {
-    name  = "args[5]"
-    value = "--kubelet-insecure-tls=true"
-  }
-
-  set {
-    name  = "hostNetwork.enabled"
-    value = true
-  }
-
-  set {
-    name  = "resources.requests.cpu"
-    value = "50m"
-  }
-
-  set {
-    name  = "resources.requests.memory"
-    value = "64Mi"
-  }
+  # Use values yaml to override arguments instead of individual set blocks
+  # This prevents duplicate arguments that were causing the CrashLoopBackOff
+  values = [
+    <<-EOT
+    args:
+      - --cert-dir=/tmp
+      - --secure-port=10443
+      - --kubelet-preferred-address-types=InternalIP
+      - --kubelet-use-node-status-port
+      - --metric-resolution=15s
+      - --kubelet-insecure-tls=true
+    hostNetwork:
+      enabled: true
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "64Mi"
+    livenessProbe:
+      httpGet:
+        path: /livez
+        port: 10443
+        scheme: HTTPS
+    readinessProbe:
+      httpGet:
+        path: /readyz
+        port: 10443
+        scheme: HTTPS
+    EOT
+  ]
 
   depends_on = [
     helm_release.aws_load_balancer_controller
