@@ -88,9 +88,3 @@ variable "cli_admin_username" {
   type        = string
   default     = "cli-admin"
 }
-
-variable "create_user_roles" {
-  description = "Whether to create additional IAM users and roles for EKS access"
-  type        = bool
-  default     = false
-}
