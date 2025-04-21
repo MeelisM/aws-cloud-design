@@ -1,0 +1,827 @@
+{
+	"info": {
+		"_postman_id": "958eba18-ab8b-4e6c-b284-88ef3318f606",
+		"name": "cloud-design",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "41003333"
+	},
+	"item": [
+		{
+			"name": "Gateway Tests",
+			"item": [
+				{
+					"name": "Movies",
+					"item": [
+						{
+							"name": "Create Movie",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Create movie successful\", function () {",
+											"    pm.response.to.have.status(201);",
+											"    const response = pm.response.json();",
+											"    ",
+											"    const requestBody = JSON.parse(pm.request.body.raw);",
+											"    pm.expect(response.title).to.eql(requestBody.title);",
+											"    pm.expect(response.description).to.eql(requestBody.description);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const testMovie = {",
+											"    title: pm.environment.get('MOVIE_TEST_TITLE') + '_' + Date.now(),",
+											"    description: pm.environment.get('MOVIE_TEST_DESCRIPTION')",
+											"};",
+											"pm.environment.set('CURRENT_TEST_MOVIE', JSON.stringify(testMovie));",
+											"pm.request.body.raw = JSON.stringify(testMovie);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"A new movie\",\n  \"description\": \"Very short description\"\n}\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Movies",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Get all movies successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.be.an('array');",
+											"    ",
+											"    pm.test(\"Response time is acceptable\", function () {",
+											"        pm.expect(pm.response.responseTime).to.be.below(1000);",
+											"    });",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Movie by Title",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Get movie by title successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.be.an('array');",
+											"    ",
+											"    const title = pm.request.url.query.get('title');",
+											"    if (response.length > 0) {",
+											"        response.forEach(movie => {",
+											"            pm.expect(movie.title.toLowerCase()).to.include(title.toLowerCase());",
+											"        });",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}?title=test",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									],
+									"query": [
+										{
+											"key": "title",
+											"value": "test"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Movie by ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Get movie by ID successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    ",
+											"    pm.expect(response).to.be.an('object');",
+											"    pm.expect(response).to.have.property('id');",
+											"    pm.expect(response).to.have.property('title');",
+											"    pm.expect(response).to.have.property('description');",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}/1",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									],
+									"path": [
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Movie by ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Update movie successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    ",
+											"    const urlParts = pm.request.url.path;",
+											"    const id = urlParts[urlParts.length - 1];",
+											"    const response = pm.response.json();",
+											"    const requestBody = JSON.parse(pm.request.body.raw);",
+											"    ",
+											"    pm.expect(response.id).to.eql(Number(id));  ",
+											"    ",
+											"    pm.expect(response.title).to.eql(requestBody.title);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Rambo\",\n  \"description\": \"Updated description.\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}/1",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									],
+									"path": [
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Movie by ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Delete movie successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    ",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.have.property('message');",
+											"    pm.expect(response.message).to.equal(\"Movie was deleted successfully.\")",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}/1",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									],
+									"path": [
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete All Movies",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Delete all movies successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    ",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.have.property('message');",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Billing",
+					"item": [
+						{
+							"name": "Create Order",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Order queued successfully\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.message).to.equal(\"Order has been queued for processing\");",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"user_id\": \"{{BILLING_TEST_USER_1}}\",\n    \"number_of_items\": \"{{BILLING_TEST_ITEMS_1}}\",\n    \"total_amount\": \"{{BILLING_TEST_AMOUNT_1}}\"\n}\n\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GATEWAY_BILLING_URL}}",
+									"host": [
+										"{{GATEWAY_BILLING_URL}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Test Suites",
+			"item": [
+				{
+					"name": "Movie CRUD sequence",
+					"item": [
+						{
+							"name": "1. DELETE All Movies (Clean Start)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Delete all movies successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    ",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.have.property('message');",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "2. Get All Movies (Verify Empty)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Get all movies successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.be.an('array');",
+											"    ",
+											"    pm.test(\"Response time is acceptable\", function () {",
+											"        pm.expect(pm.response.responseTime).to.be.below(1000);",
+											"    });",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "3. Create Movie",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Create movie successful\", function () {",
+											"    pm.response.to.have.status(201);",
+											"    const response = pm.response.json();",
+											"    ",
+											"    const requestBody = JSON.parse(pm.request.body.raw);",
+											"    pm.expect(response.title).to.eql(requestBody.title);",
+											"    pm.expect(response.description).to.eql(requestBody.description);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const testMovie = {",
+											"    title: pm.environment.get('MOVIE_TEST_TITLE') + '_' + Date.now(),",
+											"    description: pm.environment.get('MOVIE_TEST_DESCRIPTION')",
+											"};",
+											"pm.environment.set('CURRENT_TEST_MOVIE', JSON.stringify(testMovie));",
+											"pm.request.body.raw = JSON.stringify(testMovie);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "4. Get Movie by ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Get movie by ID successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    ",
+											"    pm.expect(response).to.be.an('object');",
+											"    pm.expect(response).to.have.property('id');",
+											"    pm.expect(response).to.have.property('title');",
+											"    pm.expect(response).to.have.property('description');",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}/1",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									],
+									"path": [
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "5. Update Movie by ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Update movie successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    ",
+											"    const urlParts = pm.request.url.path;",
+											"    const id = urlParts[urlParts.length - 1];",
+											"    const response = pm.response.json();",
+											"    const requestBody = JSON.parse(pm.request.body.raw);",
+											"    ",
+											"    pm.expect(response.id).to.eql(Number(id));  ",
+											"    ",
+											"    pm.expect(response.title).to.eql(requestBody.title);",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"Rambo\",\n  \"description\": \"Updated description.\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}/1",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									],
+									"path": [
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "6. Get Movie by Title",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Get movie by title successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.be.an('array');",
+											"    ",
+											"    const title = pm.request.url.query.get('title');",
+											"    if (response.length > 0) {",
+											"        response.forEach(movie => {",
+											"            pm.expect(movie.title.toLowerCase()).to.include(title.toLowerCase());",
+											"        });",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}?title=test",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									],
+									"query": [
+										{
+											"key": "title",
+											"value": "test"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "7. Delete Movie by ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Delete movie successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    ",
+											"    const response = pm.response.json();",
+											"    pm.expect(response).to.have.property('message');",
+											"    pm.expect(response.message).to.equal(\"Movie was deleted successfully.\")",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{GATEWAY_INVENTORY_URL}}/1",
+									"host": [
+										"{{GATEWAY_INVENTORY_URL}}"
+									],
+									"path": [
+										"1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Billing Queue Tests",
+					"item": [
+						{
+							"name": "1. Create Order (API Running)",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const testOrder = {",
+											"    user_id: pm.environment.get('ORDER_TEST_USER_ID'),",
+											"    number_of_items: pm.environment.get('ORDER_TEST_ITEMS'),",
+											"    total_amount: pm.environment.get('ORDER_TEST_AMOUNT')",
+											"};",
+											"pm.environment.set('CURRENT_TEST_ORDER', JSON.stringify(testOrder));",
+											"pm.request.body.raw = JSON.stringify(testOrder);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Order queued successfully\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.message).to.equal(\"Order has been queued for processing\");",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"user_id\": \"{{BILLING_TEST_USER_2}}\",\n    \"number_of_items\": \"{{BILLING_TEST_ITEMS_2}}\",\n    \"total_amount\": \"{{BILLING_TEST_AMOUNT_2}}\"\n}\n\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GATEWAY_BILLING_URL}}",
+									"host": [
+										"{{GATEWAY_BILLING_URL}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "2. Create Order (API Stopped)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Order accepted while API is down\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.message).to.equal(\"Order has been queued for processing\");",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const testOrder = {",
+											"    user_id: pm.environment.get('ORDER_TEST_USER_ID'),",
+											"    number_of_items: pm.environment.get('ORDER_TEST_ITEMS'),",
+											"    total_amount: pm.environment.get('ORDER_TEST_AMOUNT')",
+											"};",
+											"pm.environment.set('CURRENT_TEST_ORDER', JSON.stringify(testOrder));",
+											"pm.request.body.raw = JSON.stringify(testOrder);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"user_id\": \"{{BILLING_TEST_USER_2}}\",\n    \"number_of_items\": \"{{BILLING_TEST_ITEMS_2}}\",\n    \"total_amount\": \"{{BILLING_TEST_AMOUNT_2}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GATEWAY_BILLING_URL}}",
+									"host": [
+										"{{GATEWAY_BILLING_URL}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "3. Verify Queue Processing",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Order processed after restart\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.message).to.equal(\"Order has been queued for processing\");",
+											"});"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const testOrder = {",
+											"    user_id: pm.environment.get('ORDER_TEST_USER_ID'),",
+											"    number_of_items: pm.environment.get('ORDER_TEST_ITEMS'),",
+											"    total_amount: pm.environment.get('ORDER_TEST_AMOUNT')",
+											"};",
+											"pm.environment.set('CURRENT_TEST_ORDER', JSON.stringify(testOrder));",
+											"pm.request.body.raw = JSON.stringify(testOrder);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"user_id\": \"{{BILLING_TEST_USER_3}}\",\n    \"number_of_items\": \"{{BILLING_TEST_ITEMS_3}}\",\n    \"total_amount\": \"{{BILLING_TEST_AMOUNT_3}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GATEWAY_BILLING_URL}}",
+									"host": [
+										"{{GATEWAY_BILLING_URL}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "To test the billing queue functionality (need to do it manually):\n\n- Send order while billing-app is running\n    \n    - Verify order appears in database\n        \n- Stop billing-app: `pm2 stop billing-api`\n    \n    - Send order\n        \n    - Verify Gateway accepts it\n        \n- Start billing-app: `pm2 start billing-api`\n    \n    - Verify queued order appears in database"
+				}
+			]
+		}
+	]
+}

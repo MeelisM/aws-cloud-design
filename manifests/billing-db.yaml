@@ -51,11 +51,11 @@ spec:
               mountPath: /var/lib/postgresql/data
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "500m"
+              memory: "128Mi"
+              cpu: "200m"
             limits:
-              memory: "512Mi"
-              cpu: "1"
+              memory: "256Mi"
+              cpu: "400m"
           livenessProbe:
             tcpSocket:
               port: 5432

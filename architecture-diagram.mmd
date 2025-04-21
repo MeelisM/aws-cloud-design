@@ -54,10 +54,6 @@ graph TD
                 %% NAT Gateway connection
                 NAT2 --> PrivateSubnet2
             end
-            
-            %% Pod Distribution with Topology Spread Constraints
-            API1 -.->|"Topology Spread<br>Constraint"| API2
-            INV1 -.->|"Topology Spread<br>Constraint"| INV2
         end
         
         %% External AWS Services
