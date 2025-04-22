@@ -70,3 +70,29 @@ output "certificate_common_name" {
   description = "Common name used for the self-signed certificate"
   value       = var.certificate_common_name
 }
+
+# CloudWatch Dashboard Outputs
+output "cloudwatch_dashboard_name" {
+  description = "Name of the CloudWatch Dashboard monitoring EKS"
+  value       = module.cloudwatch_dashboard.dashboard_name
+}
+
+output "cloudwatch_dashboard_arn" {
+  description = "ARN of the CloudWatch Dashboard"
+  value       = module.cloudwatch_dashboard.dashboard_arn
+}
+
+output "container_insights_addon_name" {
+  description = "Name of the Container Insights EKS addon"
+  value       = module.cloudwatch_dashboard.container_insights_addon_name
+}
+
+output "container_insights_addon_version" {
+  description = "Version of the Container Insights EKS addon"
+  value       = module.cloudwatch_dashboard.container_insights_addon_version
+}
+
+output "cloudwatch_agent_role_arn" {
+  description = "ARN of the IAM role used by CloudWatch agent"
+  value       = module.cloudwatch_dashboard.cloudwatch_agent_role_arn
+}

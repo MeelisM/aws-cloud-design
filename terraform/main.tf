@@ -71,3 +71,16 @@ module "kubernetes_addons" {
 
   depends_on = [module.iam.iam_policy_readiness, module.eks]
 }
+
+# CloudWatch dashboard for EKS monitoring
+module "cloudwatch_dashboard" {
+  source = "./cloudwatch"
+
+  aws_region            = var.aws_region
+  environment           = var.environment
+  cluster_name          = var.cluster_name
+  eks_oidc_provider_arn = module.eks.oidc_provider_arn
+  eks_oidc_provider_url = module.eks.oidc_provider_url
+
+  depends_on = [module.eks]
+}

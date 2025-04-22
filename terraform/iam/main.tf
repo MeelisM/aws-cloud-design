@@ -98,7 +98,7 @@ resource "aws_iam_policy" "eks_permissions" {
           "eks:DeleteCluster",
           "eks:ListClusters",
           "eks:CreateNodegroup",
-          "eks:DeleteNodegroup"
+          "eks:DeleteNodegroup",
         ],
         Resource = "*"
       },
@@ -193,6 +193,53 @@ resource "aws_iam_policy" "tag_permissions" {
 }
 
 # ----------------
+# CloudWatch Permission
+# ----------------
+
+resource "aws_iam_policy" "cloudwatch_permissions" {
+  name        = "CloudWatchPermissions"
+  description = "Policy allowing necessary permissions for CloudWatch module operations"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "CloudWatchDashboardPerms",
+        Effect = "Allow",
+        Action = [
+          "cloudwatch:GetDashboard",
+          "cloudwatch:DeleteDashboards",
+          "cloudwatch:PutMetricData",
+          "cloudwatch:GetMetricStatistics",
+          "cloudwatch:ListMetrics",
+          "cloudwatch:GetMetricData",
+          "cloudwatch:PutDashboard",
+          "cloudwatch:ListDashboards",
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
+        ],
+        Resource = "*"
+      },
+      {
+        Sid    = "EKSAddonPerms",
+        Effect = "Allow",
+        Action = [
+          "eks:DescribeAddon",
+          "eks:CreateAddon",
+          "eks:DeleteAddon",
+          "eks:UpdateAddon",
+          "eks:ListAddons",
+          "eks:DescribeCluster"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# ----------------
 # Policy Attachments
 # ----------------
 
@@ -220,6 +267,12 @@ resource "aws_iam_user_policy_attachment" "cli_admin_tag" {
   policy_arn = aws_iam_policy.tag_permissions.arn
 }
 
+# Attach CloudWatch policy to CLI admin user
+resource "aws_iam_user_policy_attachment" "cli_admin_cloudwatch" {
+  user       = data.aws_iam_user.cli_admin.user_name
+  policy_arn = aws_iam_policy.cloudwatch_permissions.arn
+}
+
 # ----------------
 # Wait for IAM Policy Propagation
 # ----------------
@@ -230,7 +283,8 @@ resource "null_resource" "wait_for_iam_propagation" {
     aws_iam_user_policy_attachment.cli_admin_vpc,
     aws_iam_user_policy_attachment.cli_admin_eks,
     aws_iam_user_policy_attachment.cli_admin_acm,
-    aws_iam_user_policy_attachment.cli_admin_tag
+    aws_iam_user_policy_attachment.cli_admin_tag,
+    aws_iam_user_policy_attachment.cli_admin_cloudwatch
   ]
 
   provisioner "local-exec" {

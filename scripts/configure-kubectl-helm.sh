@@ -102,10 +102,10 @@ configure_kubectl() {
 configure_helm() {
   echo -e "${LIGHTBLUE}Configuring Helm...${NC}"
   
-  # Add common repositories
-  echo "Adding commonly used Helm repositories..."
-  helm repo add stable https://charts.helm.sh/stable 2>/dev/null || true
+  # Add required repositories
+  echo "Adding required Helm repositories..."
   helm repo add eks https://aws.github.io/eks-charts 2>/dev/null || true
+  helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/ 2>/dev/null || true
   helm repo update
   
   echo -e "${LIGHTGREEN}Helm is configured and ready to use!${NC}"
@@ -121,7 +121,7 @@ check_permissions() {
   else
     echo -e "${LIGHTRED}Warning: You may not have cluster-admin permissions.${NC}"
     echo "Some cluster configurations might fail. Please ensure you have appropriate RBAC permissions."
-  fi
+  }
 }
 
 # Main function
