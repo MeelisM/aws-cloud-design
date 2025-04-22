@@ -6,9 +6,6 @@ info:
     - API Gateway: Entry point for all requests
     - Inventory Service: Manages movie catalog (CRUD operations)
     - Billing Service: Processes orders through RabbitMQ message queue
-
-    All services are containerized using Docker Compose, ensuring efficient deployment, isolation,
-    and easy scaling of the components.
   version: 1.0.0
 paths:
   /api/movies:

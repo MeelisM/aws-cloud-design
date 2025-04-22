@@ -1,97 +1,90 @@
-graph TD
-    %% External User
-    User((Internet User)) -->|Request| IGW
-
-    %% AWS Account boundary
-    subgraph AWS["AWS Account"]
-        %% VPC and Internet Gateway
-        IGW[Internet Gateway] -->|Routes traffic| ALB
-        
-        subgraph VPC["VPC (eu-north-1)"]
-            %% Application Load Balancer
-            ALB[Application Load Balancer] -->|Routes to| API1
-            ALB -->|Routes to| API2
-            
-            %% Availability Zones
-            subgraph AZ1["Availability Zone 1"]
-                %% Public Subnet
-                subgraph PublicSubnet1["Public Subnet"]
-                    NAT1[NAT Gateway 1]
-                end
-                
-                %% Private Subnet with EKS
-                subgraph PrivateSubnet1["Private Subnet"]
-                    subgraph EKSNode1["EKS Node (t3.medium)"]
-                        API1[API Gateway Service]
-                        INV1[Inventory App]
-                        BILL1[Billing App]
-                        INVDB[Inventory DB]
-                        BILLDB[Billing DB]
-                        QUEUE[Billing Queue/RabbitMQ]
-                    end
-                end
-                
-                %% NAT Gateway connection
-                NAT1 --> PrivateSubnet1
+flowchart TD
+    subgraph "AWS Cloud - eu-north-1"
+        subgraph "VPC - 10.0.0.0/16"
+            subgraph "Availability Zone A - eu-north-1a"
+                PublicSubnetA["Public Subnet A\n10.0.1.0/24"]
+                PrivateSubnetA["Private Subnet A\n10.0.11.0/24"]
             end
             
-            subgraph AZ2["Availability Zone 2"]
-                %% Public Subnet
-                subgraph PublicSubnet2["Public Subnet"]
-                    NAT2[NAT Gateway 2]
-                end
-                
-                %% Private Subnet with EKS
-                subgraph PrivateSubnet2["Private Subnet"]
-                    subgraph EKSNode2["EKS Node (t3.medium)"]
-                        API2[API Gateway Service]
-                        INV2[Inventory App]
-                        %% Note: Stateful services like DB and queue don't show here
-                        %% as they're only running on one node at a time
-                    end
-                end
-                
-                %% NAT Gateway connection
-                NAT2 --> PrivateSubnet2
+            subgraph "Availability Zone B - eu-north-1b"
+                PublicSubnetB["Public Subnet B\n10.0.2.0/24"]
+                PrivateSubnetB["Private Subnet B\n10.0.12.0/24"]
             end
+            
+            IGW["Internet Gateway"]
+            NATGW["NAT Gateway"]
+            EIP["Elastic IP"]
+            
+            PublicRT["Public Route Table"]
+            PrivateRT["Private Route Table"]
+            
+            PublicSubnetA --> PublicRT
+            PublicSubnetB --> PublicRT
+            PrivateSubnetA --> PrivateRT
+            PrivateSubnetB --> PrivateRT
+            
+            PublicRT --> IGW
+            PrivateRT --> NATGW
+            NATGW --> EIP
+            EIP --> IGW
+            IGW --> Internet((Internet))
         end
         
-        %% External AWS Services
-        S3[(S3 Bucket for Terraform State)]
-        DynamoDB[(DynamoDB for State Lock)]
+        subgraph "Amazon EKS"
+            EKSCluster["EKS Cluster\nVersion: 1.32\ncloud-design-cluster"]
+            
+            subgraph "Node Group"
+                EKSNode1["EKS Node 1\nt3.large (SPOT)"]
+                EKSNode2["EKS Node 2\nt3.large (SPOT)"]
+            end
+            
+            subgraph "Kubernetes Resources"
+                OIDC["OIDC Provider"]
+                
+                subgraph "Workloads"
+                    APIGateway["API Gateway"]
+                    InventoryApp["Inventory App"]
+                    BillingApp["Billing App"]
+                    BillingQueue["RabbitMQ\n(Billing Queue)"]
+                    InventoryDB["Inventory DB"]
+                    BillingDB["Billing DB"]
+                end
+                
+                subgraph "Add-ons"
+                    ALBController["AWS Load Balancer\nController"]
+                    MetricsServer["Metrics Server"]
+                    ContainerInsights["Container Insights"]
+                end
+                
+                APIGateway --> InventoryApp
+                APIGateway --> BillingQueue
+                BillingQueue --> BillingApp
+                InventoryApp --> InventoryDB
+                BillingApp --> BillingDB
+            end
+            
+            ALB["Application Load Balancer"]
+            ALBController --> ALB
+            ALB --> APIGateway
+            
+            EKSCluster --> OIDC
+            EKSNode1 --> PrivateSubnetA
+            EKSNode2 --> PrivateSubnetB
+        end
+        
+        IAMRoles["IAM Roles & Policies"]
+        S3Bucket["S3 Bucket\n(Terraform State)"]
+        DynamoDB["DynamoDB Table\n(State Locking)"]
+        ACMCert["ACM Certificate\nSelf-Signed"]
+        CWDashboard["CloudWatch\nDashboard"]
+        
+        IAMRoles --> EKSCluster
+        IAMRoles --> ALBController
+        IAMRoles --> ContainerInsights
+        
+        EKSCluster --> CWDashboard
+        ContainerInsights --> CWDashboard
+        ALB --> ACMCert
+        
+        Internet --> ALB
     end
-    
-    %% Application Flow
-    API1 -->|Get movies| INV1
-    API1 -->|Submit order| QUEUE
-    QUEUE -->|Process order| BILL1
-    INV1 -->|Query/Store| INVDB
-    BILL1 -->|Query/Store| BILLDB
-    
-    %% Terraform State Management
-    Terraform([Terraform]) -->|State Storage| S3
-    Terraform -->|State Locking| DynamoDB
-
-    %% Service to Internet via NAT
-    PrivateSubnet1 -->|Outbound Traffic| NAT1
-    PrivateSubnet2 -->|Outbound Traffic| NAT2
-    NAT1 -->|Internet Access| IGW
-    NAT2 -->|Internet Access| IGW
-    
-    %% Infrastructure Management
-    kubectl([kubectl]) -->|Manage| EKSNode1
-    kubectl -->|Manage| EKSNode2
-    
-    %% Style definitions
-    classDef aws fill:#FF9900,stroke:#232F3E,color:white;
-    classDef service fill:#1EC9E8,stroke:#666,color:black;
-    classDef database fill:#3B48CC,stroke:#666,color:white;
-    classDef network fill:#7AA116,stroke:#666,color:white;
-    classDef tool fill:#D13212,stroke:#666,color:white;
-    
-    %% Apply styles
-    class S3,DynamoDB,ALB,IGW aws;
-    class API1,API2,INV1,INV2,BILL1,QUEUE service;
-    class INVDB,BILLDB database;
-    class NAT1,NAT2,PrivateSubnet1,PrivateSubnet2,PublicSubnet1,PublicSubnet2 network;
-    class Terraform,kubectl tool;

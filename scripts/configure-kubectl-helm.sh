@@ -121,7 +121,7 @@ check_permissions() {
   else
     echo -e "${LIGHTRED}Warning: You may not have cluster-admin permissions.${NC}"
     echo "Some cluster configurations might fail. Please ensure you have appropriate RBAC permissions."
-  }
+  fi
 }
 
 # Main function

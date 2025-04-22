@@ -1,0 +1,20 @@
+aws_region         = "your-aws-region-1"
+environment        = "dev"
+cli_admin_username = "cli-admin" # AWS IAM user for CLI access
+
+# VPC Configuration
+vpc_cidr             = "10.0.0.0/16"
+public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24"]
+availability_zones   = ["eu-north-1a", "eu-north-1b"]
+
+# EKS Configuration
+cluster_name    = "cloud-design-cluster"
+cluster_version = "1.32" # EKS version
+
+# Node Group Configuration
+node_instance_types = ["t3.medium"]
+capacity_type       = "SPOT"
+desired_capacity    = 1
+min_capacity        = 1
+max_capacity        = 2
