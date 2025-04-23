@@ -135,7 +135,7 @@ Before beginning the deployment, ensure your AWS user has the following IAM perm
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "VisualEditor0",
+      "Sid": "TerraformIAMBootstrap",
       "Effect": "Allow",
       "Action": [
         "iam:GetUser",
