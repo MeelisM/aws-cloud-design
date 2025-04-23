@@ -1,4 +1,4 @@
-aws_region         = "your-aws-region-1"
+aws_region         = "aws-region-1"
 environment        = "dev"
 cli_admin_username = "cli-admin" # AWS IAM user for CLI access
 
@@ -13,8 +13,8 @@ cluster_name    = "cloud-design-cluster"
 cluster_version = "1.32" # EKS version
 
 # Node Group Configuration
-node_instance_types = ["t3.medium"]
+node_instance_types = ["t3.medium"] // for max scaling, instance = t3.large
 capacity_type       = "SPOT"
-desired_capacity    = 1
+desired_capacity    = 2 // Demo setup using t3.medium instance can use 1
 min_capacity        = 1
 max_capacity        = 2

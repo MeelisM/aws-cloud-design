@@ -1,0 +1,5 @@
+aws_region          = "aws-region-1"
+state_bucket_name   = "aws-s3-bucket-name"
+dynamodb_table_name = "dynamodb-table-name"
+environment         = "dev"
+cli_admin_username  = "cli-admin" # AWS IAM user for CLI access
