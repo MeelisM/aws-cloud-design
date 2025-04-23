@@ -168,6 +168,9 @@ You can create this policy in the AWS Management Console or see the `bootstrap/i
 
 ### Setup Infrastructure
 
+- Rename `/terraform/terraform.tfvars.example` to `/terraform/terraform.tfvars` and fill it with your information.
+- For testing, `t3.medium` instance can be used, because it allows just enough pods to run the project on minimum load. `t3.large` is needed for full load.
+
 1. **Initialize Terraform state backend**:
 
    ```bash
