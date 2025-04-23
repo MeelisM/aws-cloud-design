@@ -256,8 +256,6 @@ The current implementation provides a solid foundation for a cloud-native micros
 ### Database Improvements
 
 - **Migrate to Amazon RDS**: Replace StatefulSet PostgreSQL databases with Amazon RDS for improved reliability, automatic backups, and Multi-AZ deployments
-- **Configure RDS Options**: Fine-tune RDS configurations like Performance Insights, enhanced monitoring, and backup retention periods
-- **Data Lifecycle Management**: Implement strategies for data archiving and long-term storage with Amazon S3 integration
 
 ### Security Enhancements
 
