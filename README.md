@@ -256,6 +256,7 @@ The current implementation provides a solid foundation for a cloud-native micros
 ### Security Enhancements
 
 - **Custom Domain**: Register a custom domain name to replace the self-signed certificate with a properly validated AWS ACM certificate
+- **Amazon CloudFront**: I would also add CloudFront content delivery network (CDN) for faster content delivery.
 - **AWS WAF Integration**: Add AWS Web Application Firewall for additional protection against common exploits
 - **Secret Management**: Migrate from Kubernetes Secrets to AWS Secrets Manager or HashiCorp Vault
 
