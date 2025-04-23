@@ -19,7 +19,6 @@ module "vpc" {
   availability_zones   = var.availability_zones
   cluster_name         = var.cluster_name
 
-  # Make VPC module depend on IAM policies with propagation delay
   depends_on = [module.iam.iam_policy_readiness]
 }
 
@@ -40,7 +39,6 @@ module "eks" {
   min_capacity        = var.min_capacity
   max_capacity        = var.max_capacity
 
-  # Make EKS module depend on IAM policies with propagation delay
   depends_on = [module.iam.iam_policy_readiness, module.vpc]
 }
 
@@ -52,7 +50,6 @@ module "acm" {
   environment             = var.environment
   certificate_common_name = var.certificate_common_name
 
-  # Make ACM module depend on IAM policies with propagation delay
   depends_on = [module.iam.iam_policy_readiness]
 }
 
