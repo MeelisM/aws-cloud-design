@@ -1,4 +1,6 @@
 #!/bin/bash
+
+# Used when building Docker images. Sets up the database.
 set -e
 
 echo "===== Environment Variables ====="

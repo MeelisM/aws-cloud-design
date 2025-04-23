@@ -88,7 +88,6 @@ cloud-design/
 │       └── api-gateway-ingress.tpl.yaml
 ├── postman/                    # API test collections
 ├── scripts/                    # Utility scripts
-│   ├── apply-ingress.sh
 │   ├── build-and-push.sh
 │   ├── cleanup-k8s-resources.sh
 │   ├── configure-kubectl-helm.sh
