@@ -295,7 +295,6 @@ resource "aws_cloudwatch_dashboard" "eks_monitoring_dashboard" {
         height = 6
         properties = {
           metrics = [
-            // CPU utilization over limits for regular deployments
             ["ContainerInsights", "pod_cpu_utilization_over_pod_limit",
               "PodName", "api-gateway-app",
               "ClusterName", var.cluster_name,
@@ -305,14 +304,10 @@ resource "aws_cloudwatch_dashboard" "eks_monitoring_dashboard" {
               ".", ".",
               ".", ".",
             { "region" : var.aws_region }],
-
-            // CPU utilization over limits for StatefulSet
             ["...", "billing-app-0",
               ".", ".",
               ".", ".",
             { "region" : var.aws_region }],
-
-            // Memory utilization over limits for regular deployments
             [".", "pod_memory_utilization_over_pod_limit",
               ".", "api-gateway-app",
               ".", ".",
@@ -322,8 +317,6 @@ resource "aws_cloudwatch_dashboard" "eks_monitoring_dashboard" {
               ".", ".",
               ".", ".",
             { "region" : var.aws_region }],
-
-            // Memory utilization over limits for StatefulSet
             ["...", "billing-app-0",
               ".", ".",
               ".", ".",

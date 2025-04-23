@@ -8,23 +8,25 @@ resource "aws_internet_gateway" "main" {
   }
 }
 
-# Elastic IP for NAT Gateway
+# Elastic IPs for NAT Gateways (one per AZ)
 resource "aws_eip" "nat" {
+  count  = length(var.availability_zones)
   domain = "vpc"
 
   tags = {
-    Name        = "${var.environment}-nat-eip"
+    Name        = "${var.environment}-nat-eip-${count.index + 1}"
     Environment = var.environment
   }
 }
 
-# NAT Gateway
+# NAT Gateways (one per AZ)
 resource "aws_nat_gateway" "main" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public[0].id
+  count         = length(var.availability_zones)
+  allocation_id = aws_eip.nat[count.index].id
+  subnet_id     = aws_subnet.public[count.index].id
 
   tags = {
-    Name        = "${var.environment}-nat"
+    Name        = "${var.environment}-nat-${count.index + 1}"
     Environment = var.environment
   }
 

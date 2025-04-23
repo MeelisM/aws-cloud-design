@@ -1,261 +1,235 @@
-# Cloud Design - Microservices Architecture on AWS
+# Cloud Design Project
 
-A comprehensive microservices-based application deployed on AWS using containerization, orchestration, and infrastructure as code principles. This project demonstrates a scalable, secure, and monitored cloud architecture for a movie inventory and billing system.
+A cloud-native microservices architecture deployed on AWS EKS (Elastic Kubernetes Service), designed for high availability, scalability, and security.
 
-## Table of Contents
+![Architecture Diagram](./images/diagram.png)
 
-- [Architecture Overview](#architecture-overview)
-- [Components](#components)
-- [Prerequisites](#prerequisites)
-- [Setup and Installation](#setup-and-installation)
-- [Infrastructure Management](#infrastructure-management)
-- [Security](#security)
-- [Monitoring and Logging](#monitoring-and-logging)
-- [API Documentation](#api-documentation)
-- [Cost Management](#cost-management)
-- [Troubleshooting](#troubleshooting)
-- [Future Improvements](#future-improvements)
+## Project Overview
 
-## Architecture Overview
+This project implements a cloud-native movie catalog service with three main components:
 
-This project implements a microservices architecture deployed on Amazon Web Services (AWS) using Elastic Kubernetes Service (EKS). The system is built to be resilient, scalable, and secure, following cloud-native best practices.
+- **API Gateway**: Entry point for all client requests, routing traffic to appropriate services
+- **Inventory Service**: Manages movie catalog with CRUD operations via RESTful API
+- **Billing Service**: Processes orders through a message queue system
 
-### Architecture Diagram
+## Deployment Status
 
-The architecture follows a multi-availability zone deployment pattern with the following key components:
+### Kubernetes Resources
 
-![Architecture Diagram](architecture-diagram.png)
+The following image shows the running Kubernetes services and pods in the cluster:
 
-### Design Decisions
+![Kubernetes Resources](./images/kubectl.png)
 
-1. **Multi-AZ Deployment**: Services are distributed across two availability zones for high availability and disaster recovery.
-2. **Private/Public Subnet Architecture**: All application workloads run in private subnets with controlled access to the internet via NAT gateways.
-3. **EKS for Orchestration**: Kubernetes is used to manage containerized workloads for scaling and reliability.
-4. **Message Queue for Decoupling**: RabbitMQ acts as a message broker between the API Gateway and Billing service for asynchronous processing.
-5. **Infrastructure as Code**: All infrastructure is defined and provisioned using Terraform.
+### API Testing Results
 
-## Components
+Successful API test results from Postman showing the Movie CRUD operations working against the AWS ingress endpoint:
 
-The application consists of the following microservices:
+![API Test Results](./images/api_results.png)
 
-| Component     | Description                             | Technology      | Port |
-| ------------- | --------------------------------------- | --------------- | ---- |
-| API Gateway   | Routes requests to appropriate services | Node.js/Express | 3000 |
-| Inventory App | Manages movie inventory                 | Node.js/Express | 8080 |
-| Inventory DB  | Stores movie data                       | PostgreSQL      | 5432 |
-| Billing App   | Processes orders and billing            | Node.js/Express | 8080 |
-| Billing DB    | Stores order and billing data           | PostgreSQL      | 5432 |
-| Billing Queue | Message broker for order processing     | RabbitMQ        | 5672 |
+## Architecture Components
 
-### Service Interactions
+### Infrastructure (AWS)
 
-1. Users access the application through the API Gateway
-2. Movie inventory requests are directly forwarded to the Inventory App
-3. Order requests are sent to the Billing Queue
-4. The Billing App consumes messages from the queue and processes orders
-5. Each service interacts with its respective database
+- **VPC**: Custom VPC (10.0.0.0/16) spanning multiple availability zones
+- **EKS Cluster**: Managed Kubernetes with nodes in private subnets
+- **Multi-AZ Setup**: Resources distributed across eu-north-1a and eu-north-1b for high availability
+- **Load Balancing**: Application Load Balancer with HTTPS support
+- **Security**: Private/public subnet separation with proper gateway configuration
+- **Monitoring**: CloudWatch integration for monitoring and alerting
+- **State Management**: Terraform state in S3 with DynamoDB locking
 
-## Prerequisites
+### Microservices
 
-Before setting up this project, ensure you have:
+1. **API Gateway**
 
-- AWS Account with appropriate permissions
-- AWS CLI installed and configured
-- Terraform v1.0.0+ installed
-- Docker installed
-- kubectl installed
-- Helm v3+ installed
+   - Entry point for all client requests
+   - Routes requests to appropriate backend services
+   - Swagger/OpenAPI documentation at `/api-docs`
+   - Built with Node.js/Express
 
-## Setup and Installation
+2. **Inventory Service**
 
-### 1. AWS Account Setup
+   - Movie catalog management (CRUD operations)
+   - PostgreSQL database for persistent storage
+   - RESTful API endpoints
 
-Ensure your AWS CLI is configured with appropriate credentials:
+3. **Billing Service**
+   - Order processing via message queue
+   - PostgreSQL database for order history
+   - Asynchronous processing using RabbitMQ
 
-```bash
-aws configure
+## Technologies
+
+- **Container Orchestration**: Kubernetes via Amazon EKS
+- **Infrastructure as Code**: Terraform modules for AWS resource provisioning
+- **CI/CD**: Scripts for building, testing, and deploying services
+- **Databases**: PostgreSQL for persistent storage
+- **Messaging**: RabbitMQ for asynchronous communication
+- **API Documentation**: OpenAPI/Swagger
+- **Languages & Frameworks**: Node.js, Express
+- **Container Registry**: Docker Hub
+
+## Project Structure
+
+```
+cloud-design/
+├── docker-compose.yaml         # Local development setup
+├── kustomization.yaml          # Kubernetes resource management
+├── Dockerfiles/                # Docker build configurations
+├── images/                     # Architecture diagrams
+├── manifests/                  # Kubernetes manifests
+│   ├── api-gateway-app.yaml
+│   ├── billing-app.yaml
+│   ├── billing-db.yaml
+│   ├── billing-queue.yaml
+│   ├── inventory-app.yaml
+│   ├── inventory-db.yaml
+│   └── networking/
+│       └── api-gateway-ingress.tpl.yaml
+├── postman/                    # API test collections
+├── scripts/                    # Utility scripts
+│   ├── apply-ingress.sh
+│   ├── build-and-push.sh
+│   ├── cleanup-k8s-resources.sh
+│   ├── configure-kubectl-helm.sh
+│   ├── init-billing-db.sh
+│   └── init-inventory-db.sh
+├── src/                        # Application source code
+│   ├── api-gateway/            # API Gateway service
+│   ├── billing-app/            # Billing service
+│   └── inventory-app/          # Inventory service
+└── terraform/                  # Infrastructure as code
+    ├── acm/                    # Certificate management
+    ├── bootstrap/              # Terraform state setup
+    ├── cloudwatch/             # Monitoring
+    ├── eks/                    # Kubernetes cluster
+    ├── iam/                    # Identity & access
+    ├── kubernetes-addons/      # K8s addons (ALB, metrics)
+    └── vpc/                    # Network configuration
 ```
 
-### 2. Infrastructure Provisioning
+## Getting Started
 
-Clone this repository:
+### Prerequisites
 
-```bash
-git clone <repository-url>
-cd cloud-design
+- AWS CLI configured with appropriate permissions
+- Terraform v1.11.4+
+- Docker and Docker Compose
+- kubectl
+- Helm v3
+
+### Required AWS Permissions
+
+Before beginning the deployment, ensure your AWS user has the following IAM permissions:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "TerraformIAMBootstrap",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetUser",
+        "iam:CreatePolicy",
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion",
+        "iam:AttachUserPolicy",
+        "iam:ListAttachedUserPolicies",
+        "iam:ListPolicyVersions",
+        "iam:DetachUserPolicy",
+        "iam:DeletePolicy",
+        "iam:DeletePolicyVersion",
+        "iam:CreatePolicyVersion",
+        "iam:UpdateAssumeRolePolicy"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
 ```
 
-Bootstrap Terraform backend (run once):
+You can create this policy in the AWS Management Console or see the `bootstrap/initial-user-policy.json` file for a ready-to-use policy document.
+
+### Setup Infrastructure
+
+1. **Initialize Terraform state backend**:
+
+   ```bash
+   cd terraform/bootstrap
+   terraform init
+   terraform apply
+   ```
+
+2. **Deploy main infrastructure**:
+
+   ```bash
+   cd ..
+   terraform init
+   terraform apply
+   ```
+
+3. **Configure kubectl and Helm**:
+
+   ```bash
+   cd ..
+   ./scripts/configure-kubectl-helm.sh
+   ```
+
+4. **Deploy application**:
+   ```bash
+   kubectl apply -k .
+   ```
+
+### Local Development
+
+For local development using Docker Compose:
 
 ```bash
-cd terraform/bootstrap
-terraform init
-terraform apply
-cd ../..
-```
-
-Deploy the infrastructure:
-
-```bash
-cd terraform
-terraform init
-terraform plan
-terraform apply
-```
-
-### 3. Configure kubectl to access your EKS cluster
-
-```bash
-./scripts/configure-kubectl-helm.sh
-```
-
-### 4. Deploy Kubernetes Resources
-
-Apply Kubernetes manifests:
-
-```bash
-kubectl apply -k .  # Apply kustomization
-```
-
-### 5. Apply Ingress Configuration
-
-```bash
-./scripts/apply-ingress.sh
-```
-
-_Note: Docker images are already available in Docker Hub, so there's no need to build and push them._
-
-## Infrastructure Management
-
-### Terraform Modules
-
-The infrastructure is organized into modular components:
-
-- **IAM**: User and role management
-- **VPC**: Network configuration
-- **EKS**: Kubernetes cluster setup
-- **ACM**: Certificate management
-- **Kubernetes Addons**: Load balancer controller and metrics server
-
-### Scaling
-
-The application supports autoscaling based on CPU and memory metrics:
-
-- Horizontal Pod Autoscaler (HPA) manages pod scaling
-- Node autoscaling is configured through the EKS node group settings
-- Current configuration: Min 2 nodes, Max 5 nodes, Desired 2 nodes
-
-### Updating the Infrastructure
-
-To update the infrastructure:
-
-```bash
-cd terraform
-terraform plan  # Review changes
-terraform apply  # Apply changes
-```
-
-## Security
-
-The infrastructure implements several security measures:
-
-- **Network Security**:
-
-  - Private subnets for all application components
-  - NAT Gateways for controlled outbound access
-  - Security Groups for fine-grained access control
-
-- **API Security**:
-
-  - HTTPS termination at the Load Balancer
-  - Self-signed certificates through ACM (For production, use verified certificates)
-
-- **Database Security**:
-
-  - Databases only accessible within the VPC
-  - No direct public access to database pods
-  - Credentials managed securely in Kubernetes Secrets
-
-- **Authentication and Authorization**:
-  - AWS IAM roles for service accounts
-  - Principles of least privilege applied throughout
-
-## Monitoring and Logging
-
-The system includes the following monitoring components:
-
-- **Metrics Server**: Basic Kubernetes metrics for HPA
-- **CloudWatch**: Container logs and metrics
-- **Node metrics**: CPU, memory, and network utilization
-
-To view logs:
-
-```bash
-kubectl logs -f deployment/api-gateway-app
-kubectl logs -f deployment/inventory-app
-kubectl logs -f deployment/billing-app
+cp .env.example .env
+# Edit .env file with appropriate values
+docker-compose up
 ```
 
 ## API Documentation
 
-The API Gateway exposes the following endpoints:
+When running, API documentation is available at `/api-docs` endpoint of the API Gateway service.
 
-- **GET /movies**: Retrieve all movies from inventory
-- **GET /movies/:id**: Retrieve a specific movie
-- **POST /order**: Create a new order
+## Testing with Postman
 
-API specification is available in OpenAPI format at:
-`src/api-gateway/openapi.yaml`
+Import the collections and environment from the `postman/` directory to test the API:
 
-## Cost Management
+1. Import `cloud-design.postman_collection.json`
+2. Import `cloud_design.postman_environment.json`
+3. Update the environment variables with your deployment details
 
-This infrastructure is designed to be cost-effective while maintaining reliability:
+## Cleanup
 
-- EKS cluster uses t3.medium instances for optimal cost/performance
-- Autoscaling ensures resources are only used when needed
-- NAT Gateways are shared across services to minimize costs
-- DynamoDB and S3 are used for Terraform state with minimal costs
+To clean up resources:
 
-Estimated monthly cost: $150-$200 USD (varies based on usage)
+1. **Remove application resources**:
 
-Cost optimization tips:
+   ```bash
+   ./scripts/cleanup-k8s-resources.sh
+   ```
 
-- Use AWS Cost Explorer to monitor spending
-- Implement scheduled scaling for non-production environments
-- Consider spot instances for non-critical workloads
+2. **Destroy infrastructure**:
+   ```bash
+   cd terraform
+   terraform destroy
+   cd bootstrap
+   terraform destroy
+   ```
 
-## Troubleshooting
+## Architecture Features
 
-Common issues and their solutions:
+- **High Availability**: Multi-AZ deployment with automatic failover
+- **Scalability**: EKS auto-scaling with configurable node groups
+- **Security**: Private subnets for application pods, public-only for ingress
+- **Observability**: CloudWatch integration for monitoring and alerting
+- **Disaster Recovery**: AZ2 configured for disaster recovery and scaling
+- **HTTPS Support**: Integrated with AWS Certificate Manager using a self-signed certificate (a proper ACM certificate would be used with a registered domain name)
 
-### Cannot connect to the API Gateway
+## License
 
-1. Check the status of ingress: `kubectl get ingress`
-2. Verify Load Balancer health checks in AWS Console
-3. Check if API Gateway pods are running: `kubectl get pods -l app=api-gateway`
-
-### Database connection issues
-
-1. Check database pods: `kubectl get pods -l app=inventory-db`
-2. Verify connection details in environment configuration
-3. Check logs: `kubectl logs deploy/inventory-app`
-
-### Clean up resources
-
-If you need to remove all resources:
-
-```bash
-./scripts/cleanup-k8s-resources.sh
-cd terraform
-terraform destroy
-```
-
-## Future Improvements
-
-Potential enhancements for this architecture:
-
-1. Implement AWS Cognito for user authentication
-2. Add Prometheus and Grafana for advanced monitoring
-3. Implement GitOps with ArgoCD for continuous deployment
-4. Add distributed tracing with AWS X-Ray or Jaeger
-5. Implement database backups and disaster recovery procedures
+See the [LICENSE](./LICENSE) file for licensing details.
