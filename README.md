@@ -8,11 +8,25 @@ A cloud-native microservices architecture deployed on AWS EKS (Elastic Kubernete
 
 ## Project Overview
 
-This project implements a cloud-native movie catalog service with three main components:
+This project implements a cloud-native movie catalog service with three microservices:
 
-- **API Gateway**: Entry point for all client requests, routing traffic to appropriate services
-- **Inventory Service**: Manages movie catalog with CRUD operations via RESTful API
-- **Billing Service**: Processes orders through a message queue system
+1. **API Gateway**
+
+   - Entry point for all client requests
+   - Routes requests to appropriate backend services
+   - Swagger/OpenAPI documentation at `/api-docs`
+   - Built with Node.js/Express
+
+2. **Inventory Service**
+
+   - Manages movie catalog with CRUD operations via RESTful API
+   - PostgreSQL database for persistent storage
+   - RESTful API endpoints
+
+3. **Billing Service**
+   - Processes orders through a message queue system
+   - PostgreSQL database for order history
+   - Asynchronous processing using RabbitMQ
 
 ## Deployment Status
 
@@ -37,8 +51,7 @@ Successful API test results from Postman showing the Movie CRUD operations worki
 - **Multi-AZ Setup**: Resources distributed across eu-north-1a and eu-north-1b for high availability
 - **Load Balancing**: Application Load Balancer with HTTPS support
 - **Security**: Private/public subnet separation with proper gateway configuration
-- **Monitoring**: CloudWatch integration for monitoring and alerting
-- **CloudWatch Dashboard**: Custom comprehensive dashboard for monitoring EKS cluster performance
+- **Monitoring**: CloudWatch integration with comprehensive dashboard for monitoring cluster performance
 - **State Management**: Terraform state in S3 with DynamoDB locking
 - **Autoscaling**: Horizontal Pod Autoscaling (HPA) for stateless services based on CPU utilization
 
@@ -56,26 +69,6 @@ Successful API test results from Postman showing the Movie CRUD operations worki
   - Persistent volume claims for data retention
   - Single replica with backup strategies
 
-### Microservices
-
-1. **API Gateway**
-
-   - Entry point for all client requests
-   - Routes requests to appropriate backend services
-   - Swagger/OpenAPI documentation at `/api-docs`
-   - Built with Node.js/Express
-
-2. **Inventory Service**
-
-   - Movie catalog management (CRUD operations)
-   - PostgreSQL database for persistent storage
-   - RESTful API endpoints
-
-3. **Billing Service**
-   - Order processing via message queue
-   - PostgreSQL database for order history
-   - Asynchronous processing using RabbitMQ
-
 ## Technologies
 
 - **Container Orchestration**: Kubernetes via Amazon EKS
@@ -90,7 +83,7 @@ Successful API test results from Postman showing the Movie CRUD operations worki
 
 ```
 cloud-design/
-├── docker-compose.yaml         # Local development setup
+├── docker-compose.yaml         # Docker configuration reference
 ├── kustomization.yaml          # Kubernetes resource management
 ├── Dockerfiles/                # Docker build configurations
 ├── images/                     # Architecture diagrams
@@ -142,7 +135,7 @@ Before beginning the deployment, ensure your AWS user has the following IAM perm
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "TerraformIAMBootstrap",
+      "Sid": "VisualEditor0",
       "Effect": "Allow",
       "Action": [
         "iam:GetUser",
@@ -168,8 +161,8 @@ You can create this policy in the AWS Management Console or see the `bootstrap/i
 
 ### Setup Infrastructure
 
-- Rename `/terraform/terraform.tfvars.example` to `/terraform/terraform.tfvars` and fill it with your information.
-- For testing, `t3.medium` instance can be used, because it allows just enough pods to run the project on minimum load. `t3.large` is needed for full load.
+- Rename `/terraform/terraform.tfvars.example` to `/terraform/terraform.tfvars` and fill it with information.
+- For testing, `t3.medium` instance can be used. It allows just enough pods to run the project on minimum load. `t3.large` is needed for full load.
 
 1. **Initialize Terraform state backend**:
 
