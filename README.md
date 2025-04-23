@@ -1,5 +1,7 @@
 # Cloud Design Project
 
+> **Project Focus**: This project demonstrates infrastructure as code using Terraform and AWS cloud services, specifically focused on deploying a microservices architecture to AWS EKS. The primary goal is to showcase cloud infrastructure design and deployment rather than local development.
+
 A cloud-native microservices architecture deployed on AWS EKS (Elastic Kubernetes Service), designed for high availability, scalability, and security.
 
 ![Architecture Diagram](./images/diagram.png)
@@ -36,7 +38,23 @@ Successful API test results from Postman showing the Movie CRUD operations worki
 - **Load Balancing**: Application Load Balancer with HTTPS support
 - **Security**: Private/public subnet separation with proper gateway configuration
 - **Monitoring**: CloudWatch integration for monitoring and alerting
+- **CloudWatch Dashboard**: Custom comprehensive dashboard for monitoring EKS cluster performance
 - **State Management**: Terraform state in S3 with DynamoDB locking
+- **Autoscaling**: Horizontal Pod Autoscaling (HPA) for stateless services based on CPU utilization
+
+### Kubernetes Deployment Strategy
+
+- **Stateless Services** (API Gateway, Inventory App):
+
+  - Deployed as Kubernetes Deployments
+  - Configured with Horizontal Pod Autoscaler (HPA)
+  - Minimum of 1 replica, scaling up to 3 replicas based on 60% CPU utilization
+  - Topology spread constraints to ensure pods are distributed across availability zones
+
+- **Stateful Components** (Billing Queue, Databases):
+  - Deployed as StatefulSets to preserve state and identity
+  - Persistent volume claims for data retention
+  - Single replica with backup strategies
 
 ### Microservices
 
@@ -113,7 +131,6 @@ cloud-design/
 
 - AWS CLI configured with appropriate permissions
 - Terraform v1.11.4+
-- Docker and Docker Compose
 - kubectl
 - Helm v3
 
@@ -180,16 +197,6 @@ You can create this policy in the AWS Management Console or see the `bootstrap/i
    kubectl apply -k .
    ```
 
-### Local Development
-
-For local development using Docker Compose:
-
-```bash
-cp .env.example .env
-# Edit .env file with appropriate values
-docker-compose up
-```
-
 ## API Documentation
 
 When running, API documentation is available at `/api-docs` endpoint of the API Gateway service.
@@ -225,9 +232,37 @@ To clean up resources:
 - **High Availability**: Multi-AZ deployment with automatic failover
 - **Scalability**: EKS auto-scaling with configurable node groups
 - **Security**: Private subnets for application pods, public-only for ingress
-- **Observability**: CloudWatch integration for monitoring and alerting
 - **Disaster Recovery**: AZ2 configured for disaster recovery and scaling
 - **HTTPS Support**: Integrated with AWS Certificate Manager using a self-signed certificate (a proper ACM certificate would be used with a registered domain name)
+
+### Monitoring & Observability
+
+The project includes a comprehensive CloudWatch dashboard that provides visibility into cluster performance:
+
+- **Overall Cluster Metrics**: Pod and node-level CPU and memory utilization across the cluster
+- **Namespace Monitoring**: Separate metrics for default and kube-system namespaces
+- **Application Performance**: Dedicated panels tracking CPU and memory for each microservice (API Gateway, Inventory, Billing)
+- **Infrastructure Monitoring**: Specialized metrics for stateful components (databases and message queue)
+- **Resource Optimization**: Tracking of resource utilization against defined limits to optimize container configurations
+- **Container Insights**: AWS EKS addon enabled for deep visibility into container performance
+
+The dashboard provides both high-level overview panels and detailed component-specific metrics, enabling quick identification of performance bottlenecks or potential issues.
+
+## Future Enhancements
+
+The current implementation provides a solid foundation for a cloud-native microservices architecture. Here are some potential improvements for future iterations:
+
+### Database Improvements
+
+- **Migrate to Amazon RDS**: Replace StatefulSet PostgreSQL databases with Amazon RDS for improved reliability, automatic backups, and Multi-AZ deployments
+- **Configure RDS Options**: Fine-tune RDS configurations like Performance Insights, enhanced monitoring, and backup retention periods
+- **Data Lifecycle Management**: Implement strategies for data archiving and long-term storage with Amazon S3 integration
+
+### Security Enhancements
+
+- **Custom Domain**: Register a custom domain name to replace the self-signed certificate with a properly validated AWS ACM certificate
+- **AWS WAF Integration**: Add AWS Web Application Firewall for additional protection against common exploits
+- **Secret Management**: Migrate from Kubernetes Secrets to AWS Secrets Manager or HashiCorp Vault
 
 ## License
 
