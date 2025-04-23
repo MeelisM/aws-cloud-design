@@ -51,7 +51,7 @@ Successful API test results from Postman showing the Movie CRUD operations worki
   - Minimum of 1 replica, scaling up to 3 replicas based on 60% CPU utilization
   - Topology spread constraints to ensure pods are distributed across availability zones
 
-- **Stateful Components** (Billing Queue, Databases):
+- **Stateful Components** (Billing App, Billing Queue, Databases):
   - Deployed as StatefulSets to preserve state and identity
   - Persistent volume claims for data retention
   - Single replica with backup strategies
@@ -80,7 +80,6 @@ Successful API test results from Postman showing the Movie CRUD operations worki
 
 - **Container Orchestration**: Kubernetes via Amazon EKS
 - **Infrastructure as Code**: Terraform modules for AWS resource provisioning
-- **CI/CD**: Scripts for building, testing, and deploying services
 - **Databases**: PostgreSQL for persistent storage
 - **Messaging**: RabbitMQ for asynchronous communication
 - **API Documentation**: OpenAPI/Swagger
@@ -238,6 +237,8 @@ To clean up resources:
 ### Monitoring & Observability
 
 The project includes a comprehensive CloudWatch dashboard that provides visibility into cluster performance:
+
+![Cloudwatch Dashboard](/images/dashboard_1.png)
 
 - **Overall Cluster Metrics**: Pod and node-level CPU and memory utilization across the cluster
 - **Namespace Monitoring**: Separate metrics for default and kube-system namespaces
